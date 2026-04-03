@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>總管家包租代管 | AI 多筆公設識別計算器</title>
+    <title>總管家包租代管 | AI 謄本精準識別工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -11,7 +11,7 @@
             --accent: #16a085;
             --bg: #f8f9fa;
         }
-        body { background-color: var(--bg); color: var(--primary); }
+        body { background-color: var(--bg); color: var(--primary); font-family: sans-serif; }
         .fraction-row { display: grid; grid-template-columns: 2fr 1fr 20px 1fr 40px; gap: 8px; align-items: flex-end; }
         .loading-overlay {
             display: none;
@@ -31,26 +31,34 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .transcript-hint { background: #e8f5e9; border-left: 4px solid #16a085; padding: 10px; margin-bottom: 15px; font-size: 0.8rem; color: #2e7d32; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8">
+<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 border-t-8 border-[#16a085]">
     <header class="text-center mb-8">
-        <h1 class="text-2xl font-bold border-b-2 border-[#16a085] pb-2 inline-block">總管家包租代管專業計算器</h1>
-        <p class="text-gray-500 text-sm mt-2">由 宜仁居家有限公司 AI 技術支援 (多筆公設版)</p>
+        <h1 class="text-2xl font-bold text-slate-800 pb-2">總管家包租代管專業計算器</h1>
+        <p class="text-gray-500 text-sm mt-1">宜仁居家 AI 顧問：已針對「建物標示部」優化辨識邏輯</p>
     </header>
 
     <!-- AI 掃描區塊 -->
-    <section class="mb-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-        <h2 class="text-emerald-800 font-bold mb-3 flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            AI 影像識別 (自動填寫多筆公設)
+    <section class="mb-8 p-5 bg-slate-50 rounded-xl border border-slate-200">
+        <h2 class="text-slate-700 font-bold mb-3 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            AI 影像識別
         </h2>
+        
+        <div class="transcript-hint mb-4">
+            <strong>💡 識別提示：</strong> 本系統會精準抓取「建物標示部」數據。<br>
+            • 層次面積 → 自動填入 <strong>主建物</strong><br>
+            • 附屬建物(如陽台/花台) → 自動 <strong>加總填入</strong>
+        </div>
+
         <div class="flex flex-col gap-4">
-            <input type="file" id="imageInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
-            <button onclick="processImage()" class="bg-emerald-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-emerald-700 transition w-full">
-                開始識別謄本照片
+            <input type="file" id="imageInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer">
+            <button onclick="processImage()" class="bg-[#16a085] text-white py-3 px-6 rounded-lg font-bold hover:bg-[#138d75] transition w-full shadow-md">
+                讀取謄本照片並自動填表
             </button>
         </div>
     </section>
@@ -58,23 +66,27 @@
     <!-- 輸入表單 -->
     <form id="calcForm" class="space-y-6">
         <div>
-            <h3 class="text-sm font-bold text-emerald-700 mb-3 uppercase tracking-wider">基礎面積 (㎡)</h3>
+            <h3 class="text-sm font-bold text-emerald-700 mb-3 uppercase tracking-wider flex items-center">
+                <span class="w-2 h-4 bg-emerald-600 mr-2 rounded-sm"></span>基礎面積 (㎡)
+            </h3>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">主建物 <span class="text-red-500">*</span></label>
-                    <input type="number" id="mainArea" step="0.01" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="0.00">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">主建物 (層次面積) <span class="text-red-500">*</span></label>
+                    <input type="number" id="mainArea" step="0.01" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-gray-50" placeholder="0.00">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">附屬建物 <span class="text-red-500">*</span></label>
-                    <input type="number" id="subArea" step="0.01" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="0.00">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">附屬建物 (陽台/花台加總) <span class="text-red-500">*</span></label>
+                    <input type="number" id="subArea" step="0.01" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-gray-50" placeholder="0.00">
                 </div>
             </div>
         </div>
 
         <div>
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider">共有部分 (公設/車位)</h3>
-                <button type="button" onclick="addFacilityRow()" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200">+ 新增公設筆數</button>
+                <h3 class="text-sm font-bold text-emerald-700 uppercase tracking-wider flex items-center">
+                    <span class="w-2 h-4 bg-emerald-600 mr-2 rounded-sm"></span>共有部分 (公設/車位)
+                </h3>
+                <button type="button" onclick="addFacilityRow()" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">+ 手動新增一筆</button>
             </div>
             <div id="facilityContainer" class="space-y-3">
                 <!-- 動態生成區域 -->
@@ -84,7 +96,7 @@
                         <div><span class="text-[10px] text-gray-400 block">分子</span><input type="number" class="num w-full p-2 border rounded" placeholder="1"></div>
                         <div class="pb-2 text-center text-gray-400">/</div>
                         <div><span class="text-[10px] text-gray-400 block">分母</span><input type="number" class="den w-full p-2 border rounded" placeholder="1"></div>
-                        <div class="pb-1 text-center"><button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500">×</button></div>
+                        <div class="pb-1 text-center"><button type="button" onclick="removeRow(this)" class="text-gray-300 hover:text-red-500 text-xl">×</button></div>
                     </div>
                 </div>
             </div>
@@ -92,30 +104,31 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium mb-1">月租金</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">預計月租金 (元)</label>
                 <input type="number" id="rent" class="w-full p-3 border rounded-lg" placeholder="金額">
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">管理費</label>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">預估管理費 (元)</label>
                 <input type="number" id="mgmt" class="w-full p-3 border rounded-lg" placeholder="金額">
             </div>
         </div>
 
         <div class="flex gap-3 pt-4">
-            <button type="button" onclick="location.reload()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition">重置</button>
-            <button type="button" onclick="calculate()" class="flex-[2] py-3 bg-[#16a085] text-white rounded-xl font-bold hover:bg-[#138d75] transition shadow-lg shadow-emerald-100">執行計算</button>
+            <button type="button" onclick="location.reload()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition">清空</button>
+            <button type="button" onclick="calculate()" class="flex-[2] py-3 bg-[#2c3e50] text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg">計算結果</button>
         </div>
     </form>
 
     <div id="result" class="mt-8 hidden animate-fade-in">
-        <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200" id="resContent"></div>
-        <button onclick="copyResult()" class="w-full mt-4 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">一鍵複製報表</button>
+        <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100" id="resContent"></div>
+        <button onclick="copyResult()" class="w-full mt-4 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">一鍵複製報表內容</button>
     </div>
 </div>
 
 <div id="loading" class="loading-overlay">
     <div class="spinner mb-4"></div>
-    <p class="font-bold text-emerald-800">AI 正在自動識別所有共有部分...</p>
+    <p class="font-bold text-[#16a085]">AI 正在精準抓取「建物標示部」數據...</p>
+    <p class="text-xs text-gray-400">正在分析主建物面積與附屬建物細項</p>
 </div>
 
 <script>
@@ -149,18 +162,17 @@
 
     async function processImage() {
         const fileInput = document.getElementById('imageInput');
-        if (fileInput.files.length === 0) return alert("請選擇照片");
+        if (fileInput.files.length === 0) return alert("請先選擇謄本照片");
 
         toggleLoading(true);
         const file = fileInput.files[0];
         const base64Data = await toBase64(file);
 
-        const prompt = `你是一個專業的台灣房地產專家。請從這張建物謄本照片中提取數據。
-        請僅返回 JSON 格式，包含以下鍵值：
-        - mainArea (主建物面積，數字)
-        - subArea (附屬建物面積，數字)
-        - facilities (數組，每一項代表一筆共有部分/公設/車位，包含 area, num, den)
-        注意：請識別謄本中所有的共有部分項目。`;
+        const prompt = `你是一個專業的台灣房地產地政專家。請從這張『建物登記謄本』中提取數據，特別關注『建物標示部』：
+        1. 找到『層次面積』：這代表主建物面積，請放入 mainArea。
+        2. 找到『附屬建物』：下面可能有多筆，如陽台、花台、雨遮。請將它們的所有面積加總後，放入 subArea。
+        3. 找到『共有部分』：每一筆共有部分提取總面積 (area)、權利範圍分子 (num) 與分母 (den)，放入 facilities 數組。
+        請僅返回 JSON 格式。`;
 
         try {
             const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -179,9 +191,13 @@
 
             const result = await response.json();
             const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) autoFill(JSON.parse(text));
+            if (text) {
+                const data = JSON.parse(text);
+                autoFill(data);
+            }
         } catch (error) {
-            alert("識別失敗，請手動輸入。");
+            console.error(error);
+            alert("AI 識別失敗，建議手動輸入或確保照片包含完整的建物標示部。");
         } finally {
             toggleLoading(false);
         }
@@ -193,10 +209,15 @@
         
         if (data.facilities && data.facilities.length > 0) {
             const container = document.getElementById('facilityContainer');
-            container.innerHTML = ''; // 清空現有的
+            container.innerHTML = ''; 
             data.facilities.forEach(f => addFacilityRow(f));
+        } else {
+            // 如果沒抓到共有部分，重置為一筆空的
+            const container = document.getElementById('facilityContainer');
+            container.innerHTML = '';
+            addFacilityRow();
         }
-        alert("AI 已自動填寫 " + (data.facilities ? data.facilities.length : 0) + " 筆公設資料！");
+        alert("AI 數據抓取完畢！請核對主建物(" + (data.mainArea||0) + ")與附屬建物(" + (data.subArea||0) + ")是否正確。");
     }
 
     function calculate() {
@@ -204,6 +225,7 @@
         const main = getVal('mainArea');
         const sub = getVal('subArea');
         const rent = getVal('rent');
+        const mgmt = getVal('mgmt');
         
         if (!main) return alert("請輸入主建物面積");
 
@@ -221,24 +243,36 @@
         const resContent = document.getElementById('resContent');
         document.getElementById('result').style.display = 'block';
 
+        const deedPing = deedM2 * M2_TO_PING;
+        const interiorPing = interiorM2 * M2_TO_PING;
+
         resContent.innerHTML = `
             <div class="space-y-4">
-                <div class="flex justify-between border-b pb-2">
-                    <span class="text-gray-500">權狀總面積 (含所有公設)</span>
-                    <div class="text-right"><span class="text-xl font-bold text-emerald-600">${(deedM2*M2_TO_PING).toFixed(2)} 坪</span><br><span class="text-xs text-gray-400">${deedM2.toFixed(2)} ㎡</span></div>
+                <div class="flex justify-between items-end border-b border-emerald-200 pb-3">
+                    <span class="text-emerald-800 font-bold">權狀總坪數</span>
+                    <div class="text-right">
+                        <span class="text-3xl font-black text-emerald-600">${deedPing.toFixed(2)} <small class="text-sm font-normal">坪</small></span>
+                        <div class="text-xs text-gray-400 mt-1">${deedM2.toFixed(2)} ㎡ (含公設)</div>
+                    </div>
                 </div>
-                <div class="flex justify-between border-b pb-2 text-sm">
-                    <span class="text-gray-400">其中：室內面積</span>
-                    <span>${(interiorM2*M2_TO_PING).toFixed(2)} 坪</span>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="p-3 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-gray-400 block mb-1">室內淨坪</span>
+                        <span class="font-bold text-slate-700">${interiorPing.toFixed(2)} 坪</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-gray-400 block mb-1">公設持分</span>
+                        <span class="font-bold text-slate-700">${(totalPubM2 * M2_TO_PING).toFixed(2)} 坪</span>
+                    </div>
                 </div>
-                <div class="flex justify-between border-b pb-2 text-sm">
-                    <span class="text-gray-400">其中：公設總計</span>
-                    <span>${(totalPubM2*M2_TO_PING).toFixed(2)} 坪</span>
-                </div>
-                <div class="pt-2">
+                <div class="pt-2 bg-emerald-100/50 p-4 rounded-xl">
                     <div class="flex justify-between font-bold text-slate-800">
-                        <span>單坪月租金</span>
-                        <span>${deedM2 > 0 ? Math.round(rent/(deedM2*M2_TO_PING)).toLocaleString() : 0} 元/坪</span>
+                        <span>預估單坪租金</span>
+                        <span class="text-emerald-700">${deedPing > 0 ? Math.round(rent/deedPing).toLocaleString() : 0} <small class="text-xs">元/坪</small></span>
+                    </div>
+                    <div class="flex justify-between font-medium text-slate-600 text-xs mt-2">
+                        <span>預估單坪管理費</span>
+                        <span>${deedPing > 0 ? Math.round(mgmt/deedPing).toLocaleString() : 0} 元/坪</span>
                     </div>
                 </div>
             </div>
@@ -263,21 +297,21 @@
             } catch (e) {}
             await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
         }
-        throw new Error("Retry failed");
+        throw new Error("API 重試失敗");
     }
 
     function toggleLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
 
     function copyResult() {
-        const text = document.getElementById('resContent').innerText;
-        const report = `【總管家包租代管 - 專業試算報告】\n--------------------\n${text}\n--------------------\n宜仁居家 AI 顧問關心您`;
+        const text = document.getElementById('resContent').innerText.replace(/\n\s*\n/g, '\n');
+        const report = `【總管家包租代管 - 謄本面積試算報告】\n--------------------\n${text}\n--------------------\n服務顧問：宜仁居家 AI 團隊`;
         const el = document.createElement("textarea");
         el.value = report;
         document.body.appendChild(el);
         el.select();
         document.execCommand('copy');
         document.body.removeChild(el);
-        alert("已複製報表！");
+        alert("試算報告已複製到剪貼簿，可直接貼到 Line 分享！");
     }
 </script>
 
