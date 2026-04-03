@@ -52,7 +52,8 @@
         <div class="transcript-hint mb-4">
             <strong>💡 識別提示：</strong> 本系統會精準抓取「建物標示部」數據。<br>
             • 層次面積 → 自動填入 <strong>主建物</strong><br>
-            • 附屬建物(如陽台/花台) → 自動 <strong>加總填入</strong>
+            • 附屬建物(如陽台/花台) → 自動 <strong>加總填入</strong><br>
+            <span class="text-red-600 font-bold mt-2 inline-block text-base">📸 照片說明：請務必【僅拍攝標示部】（重點），以獲得最高辨識精準度。</span>
         </div>
 
         <div class="flex flex-col gap-4">
@@ -132,7 +133,8 @@
 </div>
 
 <script>
-    const apiKey = ""; 
+    // 宜仁居家 AI 顧問：已為您整合專屬 API 金鑰
+    const apiKey = "AIzaSyDwxX2pmycOjMsW07JVmrZH82t0b_ymU-M"; 
     const M2_TO_PING = 0.3025;
 
     function addFacilityRow(data = {}) {
@@ -192,12 +194,18 @@
             const result = await response.json();
             const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
-                const data = JSON.parse(text);
-                autoFill(data);
+                // 強化 JSON 格式解析穩定性，自動提取大括號內的 JSON 內容，忽略 AI 多餘的對話文字
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[0]);
+                    autoFill(data);
+                } else {
+                    throw new Error("找不到有效的 JSON 格式資料");
+                }
             }
         } catch (error) {
-            console.error(error);
-            alert("AI 識別失敗，建議手動輸入或確保照片包含完整的建物標示部。");
+            console.error("AI 識別發生錯誤:", error);
+            alert("AI 識別失敗，建議手動輸入或確保照片包含完整的建物標示部。\n\n(系統提示：若您是在自架網站上執行，請確保已在程式碼中填寫正確的 Google Gemini API Key)");
         } finally {
             toggleLoading(false);
         }
@@ -297,7 +305,7 @@
             } catch (e) {}
             await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
         }
-        throw new Error("API 重試失敗");
+        throw new Error("API 請求失敗或金鑰無效");
     }
 
     function toggleLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
